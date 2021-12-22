@@ -83,3 +83,48 @@ func NewICAPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 
 	return path
 }
+
+// SetupICAPath invokes the InterchainAccounts entrypoint and subsequent channel handshake handlers
+func SetupICAPath(path *ibctesting.Path, icaApp *icaapp.App, owner string) error {
+	if err := InitInterchainAccount(path.EndpointA, icaApp, owner); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenTry(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointA.ChanOpenAck(); err != nil {
+		return err
+	}
+
+	if err := path.EndpointB.ChanOpenConfirm(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// InitInterchainAccount is a helper function for starting the channel handshake
+func InitInterchainAccount(endpoint *ibctesting.Endpoint, icaApp *icaapp.App, owner string) error {
+	portID, err := icatypes.GeneratePortID(owner, endpoint.ConnectionID, endpoint.Counterparty.ConnectionID)
+	if err != nil {
+		return err
+	}
+
+	channelSequence := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(endpoint.Chain.GetContext())
+
+	if err := icaApp.ICAControllerKeeper.InitInterchainAccount(endpoint.Chain.GetContext(), endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, owner); err != nil {
+		return err
+	}
+
+	// commit state changes for proof verification
+	endpoint.Chain.App.Commit()
+	endpoint.Chain.NextBlock()
+
+	// update port/channel ids
+	endpoint.ChannelID = channeltypes.FormatChannelIdentifier(channelSequence)
+	endpoint.ChannelConfig.PortID = portID
+
+	return nil
+}
