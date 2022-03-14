@@ -114,20 +114,20 @@ func (im IBCModule) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := channeltypes.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		ctx.Logger().Info("point 2")
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 packet acknowledgement: %v", err)
 	}
 
 	txMsgData := &sdk.TxMsgData{}
 	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
-		return err
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
-
 	switch len(txMsgData.Data) {
 	case 0:
-		// TODO
+		// TODO: handle for sdk 0.44.x
 		return nil
 	default:
-		for _, msgData := range txMsgData.GetData() {
+		for _, msgData := range txMsgData.Data {
 			if response, err := handleMsgData(ctx, msgData); err != nil {
 				return err
 			} else {
@@ -160,14 +160,18 @@ func (im IBCModule) NegotiateAppVersion(
 }
 
 func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	switch msgData.GetMsgType() {
-	case banktypes.TypeMsgSend:
-		var msgResponse banktypes.MsgSendResponse
-		if err := banktypes.ModuleCdc.UnmarshalJSON(msgData.GetData(), &msgResponse); err != nil {
+	sdkMsgs := []sdk.Msg{&banktypes.MsgSend{}}
+
+	switch msgData.MsgType {
+	case sdk.MsgTypeURL(sdkMsgs[0]):
+		msgResponse := &banktypes.MsgSendResponse{}
+		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
-
 		return msgResponse.String(), nil
+
+	// TODO: handle other messages
+
 	default:
 		return "", nil
 	}
