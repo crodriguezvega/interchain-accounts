@@ -118,7 +118,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 
 	txMsgData := &sdk.TxMsgData{}
-	if err := proto.Unmarshal(ack.Acknowledgement(), txMsgData); err != nil {
+	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return err
 	}
 
