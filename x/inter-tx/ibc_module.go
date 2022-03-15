@@ -122,19 +122,19 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
-	
+
 	switch len(txMsgData.Data) {
 	case 0:
 		// TODO: handle for sdk 0.46.x
 		return nil
 	default:
 		for _, msgData := range txMsgData.Data {
-			if response, err := handleMsgData(ctx, msgData); err != nil {
+			response, err := handleMsgData(ctx, msgData)
+			if err != nil {
 				return err
 			}
-			
+
 			im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
-			
 		}
 		return nil
 	}
@@ -162,15 +162,13 @@ func (im IBCModule) NegotiateAppVersion(
 }
 
 func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	//sdkMsgs := []sdk.Msg{&banktypes.MsgSend{}}
-
 	switch msgData.MsgType {
 	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 		msgResponse := &banktypes.MsgSendResponse{}
 		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
-		
+
 		return msgResponse.String(), nil
 
 	// TODO: handle other messages
