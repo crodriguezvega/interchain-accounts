@@ -160,10 +160,10 @@ func (im IBCModule) NegotiateAppVersion(
 }
 
 func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
-	sdkMsgs := []sdk.Msg{&banktypes.MsgSend{}}
+	//sdkMsgs := []sdk.Msg{&banktypes.MsgSend{}}
 
 	switch msgData.MsgType {
-	case sdk.MsgTypeURL(sdkMsgs[0]):
+	case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 		msgResponse := &banktypes.MsgSendResponse{}
 		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
