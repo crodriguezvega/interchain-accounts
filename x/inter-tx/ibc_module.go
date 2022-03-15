@@ -122,6 +122,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
+	
 	switch len(txMsgData.Data) {
 	case 0:
 		// TODO: handle for sdk 0.46.x
