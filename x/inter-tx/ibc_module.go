@@ -131,9 +131,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 		for _, msgData := range txMsgData.Data {
 			if response, err := handleMsgData(ctx, msgData); err != nil {
 				return err
-			} else {
-				im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
 			}
+			
+			im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+			
 		}
 		return nil
 	}
