@@ -124,7 +124,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	}
 	switch len(txMsgData.Data) {
 	case 0:
-		// TODO: handle for sdk 0.44.x
+		// TODO: handle for sdk 0.46.x
 		return nil
 	default:
 		for _, msgData := range txMsgData.Data {
