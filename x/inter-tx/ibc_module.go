@@ -170,6 +170,7 @@ func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
 		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
+		
 		return msgResponse.String(), nil
 
 	// TODO: handle other messages
