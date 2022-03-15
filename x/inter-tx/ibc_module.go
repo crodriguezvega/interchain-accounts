@@ -122,6 +122,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 	if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-27 tx message data: %v", err)
 	}
+	
 	switch len(txMsgData.Data) {
 	case 0:
 		// TODO: handle for sdk 0.46.x
@@ -130,9 +131,10 @@ func (im IBCModule) OnAcknowledgementPacket(
 		for _, msgData := range txMsgData.Data {
 			if response, err := handleMsgData(ctx, msgData); err != nil {
 				return err
-			} else {
-				im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
 			}
+			
+			im.keeper.Logger(ctx).Info("message response in ICS-27 packet response", "response", response)
+			
 		}
 		return nil
 	}
@@ -168,6 +170,7 @@ func handleMsgData(ctx sdk.Context, msgData *sdk.MsgData) (string, error) {
 		if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
 			return "", sdkerrors.Wrapf(sdkerrors.ErrJSONUnmarshal, "cannot unmarshal send response message: %s", err.Error())
 		}
+		
 		return msgResponse.String(), nil
 
 	// TODO: handle other messages
